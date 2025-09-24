@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { initializeGoogleAuth, getGoogleOAuthToken } from '../../lib/googleAuth';
+import { initializeGoogleAuth, initiateGoogleLogin, handleOAuthCallback } from '../../lib/googleAuth';
 
 const GoogleLoginButton = () => {
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
@@ -16,6 +16,19 @@ const GoogleLoginButton = () => {
         await initializeGoogleAuth();
         setIsGoogleLoaded(true);
         console.log('Google OAuth initialized successfully');
+        
+        // Check if we're returning from OAuth callback
+        const callbackResult = handleOAuthCallback();
+        if (callbackResult.access_token) {
+          // We have a token from Django callback
+          console.log('Processing OAuth callback...');
+          await login(callbackResult.access_token);
+          
+          // Clean up URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (callbackResult.error) {
+          setError(callbackResult.error);
+        }
       } catch (error) {
         console.error('Failed to initialize Google OAuth:', error);
         setError('Failed to load Google authentication');
@@ -23,23 +36,16 @@ const GoogleLoginButton = () => {
     };
 
     loadGoogle();
-  }, []);
+  }, [login]);
 
   // Handle Google login button click
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     try {
       setError(null); // Clear any previous errors
-
-      // Get Google access token
-      console.log('Starting Google OAuth flow...');
-      const googleToken = await getGoogleOAuthToken();
-      console.log('Google token received, logging in...');
-
-      // Use Zustand store to handle login (calls Django API)
-      await login(googleToken);
+      console.log('Redirecting to Django Google OAuth...');
       
-      console.log('Login successful!');
-      // Note: Zustand store will handle redirect/state updates
+      // Redirect to Django backend for OAuth
+      initiateGoogleLogin();
       
     } catch (error: unknown) {
       console.error('Login failed:', error);
