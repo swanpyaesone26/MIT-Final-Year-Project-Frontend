@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]  # Run on all branches
   pull_request:
-    branches: [ "main" ]
+    branches: [ "*" ]  # Run on PRs to all branches
 
 jobs:
   build:
