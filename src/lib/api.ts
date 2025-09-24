@@ -1,5 +1,12 @@
 import axios from 'axios';
 
+// TypeScript interfaces for API data
+interface CreateUserData {
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
 //use axios for fetching
 //create a "template" for all API calls
 const api = axios.create({
@@ -120,7 +127,7 @@ export const userAPI = {
     api.get(`/api/users/${id}/`),
 
   // Create new user (for registration if needed later)
-  createUser: (userData: any) =>
+  createUser: (userData: CreateUserData) =>
     api.post('/api/users/', userData),
 };
 
