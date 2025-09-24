@@ -120,7 +120,76 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: loading });
   },
   
+  // Initialize auth - check if user was already logged in
   initializeAuth: () => {
-    // TODO: Check sessionStorage on app startup
+    try {
+      // Check if tokens exist in sessionStorage
+      const tokens = sessionStorage.getItem('auth_tokens');
+      
+      if (tokens) {
+        // Parse the stored tokens
+        const { access_token, refresh_token } = JSON.parse(tokens);
+        
+        if (access_token && refresh_token) {
+          // Set loading while we verify the user
+          set({ isLoading: true });
+          
+          // Verify token and get current user info
+          authAPI.getCurrentUser()
+            .then(response => {
+              // Token is valid, user data received
+              const user = response.data;
+              
+              // Restore authenticated state
+              set({
+                isAuthenticated: true,
+                accessToken: access_token,
+                refreshToken: refresh_token,
+                user: user,
+                isLoading: false,
+              });
+              
+              console.log('Auth restored from session:', user);
+            })
+            .catch(error => {
+              // Token is invalid/expired, clear everything
+              console.warn('Stored tokens are invalid, clearing session:', error);
+              
+              sessionStorage.removeItem('auth_tokens');
+              set({
+                isAuthenticated: false,
+                accessToken: null,
+                refreshToken: null,
+                user: null,
+                isLoading: false,
+              });
+            });
+        } else {
+          // Tokens exist but are malformed
+          console.warn('Invalid token format in sessionStorage');
+          sessionStorage.removeItem('auth_tokens');
+        }
+      } else {
+        // No tokens found - user needs to login
+        set({
+          isAuthenticated: false,
+          accessToken: null,
+          refreshToken: null,
+          user: null,
+          isLoading: false,
+        });
+      }
+    } catch (error) {
+      // Error parsing stored tokens
+      console.error('Auth initialization error:', error);
+      sessionStorage.removeItem('auth_tokens');
+      set({
+        isAuthenticated: false,
+        accessToken: null,
+        refreshToken: null,
+        user: null,
+        isLoading: false,
+      });
+    }
   },
 }));
