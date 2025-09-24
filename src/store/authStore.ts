@@ -72,8 +72,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
   
+  // Logout function - clear everything and redirect
   logout: () => {
-    // TODO: Implement logout logic
+    try {
+      // Optional: Call Django logout endpoint
+      // We don't await this since we want to logout regardless
+      authAPI.logout().catch(error => {
+        console.warn('Server logout failed, but local logout continues:', error);
+      });
+
+      // Clear tokens from sessionStorage
+      sessionStorage.removeItem('auth_tokens');
+
+      // Reset all Zustand state to initial values
+      set({
+        isAuthenticated: false,
+        accessToken: null,
+        refreshToken: null,
+        user: null,
+        isLoading: false,
+      });
+
+      // Redirect to login page
+      window.location.href = '/login';
+      
+      console.log('Logout successful');
+    } catch (error) {
+      // Even if logout fails, we still clear local state
+      console.error('Logout error:', error);
+      
+      // Force clear local state anyway
+      sessionStorage.removeItem('auth_tokens');
+      set({
+        isAuthenticated: false,
+        accessToken: null,
+        refreshToken: null,
+        user: null,
+        isLoading: false,
+      });
+      
+      // Still redirect to login
+      window.location.href = '/login';
+    }
   },
   
   setLoading: (loading: boolean) => {
