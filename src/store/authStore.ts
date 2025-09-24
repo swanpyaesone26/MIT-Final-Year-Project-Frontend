@@ -18,7 +18,7 @@ interface AuthState {
 }
 
 // Create the Zustand store
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   // Initial state - everything starts as null/false
   isAuthenticated: false,
   accessToken: null,
