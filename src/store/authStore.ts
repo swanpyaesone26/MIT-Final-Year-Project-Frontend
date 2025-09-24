@@ -1,13 +1,21 @@
 import { create } from 'zustand';
 import { authAPI } from '../lib/api';
 
+// TypeScript interface for user data (matches Django API response)
+interface User {
+  pk: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
 // TypeScript interface for our authentication state
 interface AuthState {
   // Current state
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  user: any | null; // We'll improve this type later
+  user: User | null; // Now properly typed!
   isLoading: boolean;
   
   // Actions (functions to modify the state)
