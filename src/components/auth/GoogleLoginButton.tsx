@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { initializeGoogleAuth, signInWithGoogle } from '../../lib/googleAuth';
+import { initializeGoogleAuth, getGoogleOAuthToken } from '../../lib/googleAuth';
 
 const GoogleLoginButton = () => {
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
@@ -32,7 +32,7 @@ const GoogleLoginButton = () => {
 
       // Get Google access token
       console.log('Starting Google OAuth flow...');
-      const googleToken = await signInWithGoogle();
+      const googleToken = await getGoogleOAuthToken();
       console.log('Google token received, logging in...');
 
       // Use Zustand store to handle login (calls Django API)
@@ -41,9 +41,10 @@ const GoogleLoginButton = () => {
       console.log('Login successful!');
       // Note: Zustand store will handle redirect/state updates
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login failed:', error);
-      setError(error.message || 'Login failed. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      setError(errorMessage);
     }
   };
 
